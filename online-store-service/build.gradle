@@ -1,0 +1,48 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.5'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.arnoldgalovics'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2020.0.4")
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.github.openfeign:feign-core:10.12'
+	implementation 'io.github.openfeign:feign-slf4j:10.12'
+	implementation 'io.github.openfeign:feign-java11:10.12'
+	implementation 'io.github.openfeign:feign-jackson:10.12'
+	implementation 'io.github.openfeign:feign-micrometer:10.12'
+	implementation 'io.micrometer:micrometer-registry-jmx:1.7.4'
+//	implementation 'io.github.openfeign:feign-dropwizard-metrics4:10.12'
+//	implementation 'io.dropwizard.metrics:metrics-jmx:4.2.4'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
