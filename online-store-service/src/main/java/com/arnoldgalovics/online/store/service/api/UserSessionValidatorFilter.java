@@ -7,13 +7,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,19 +30,24 @@ public class UserSessionValidatorFilter implements Filter {
         if (sessionId == null) {
             httpServletResponse.sendError(HttpStatus.FORBIDDEN.value());
         } else {
-            CompletableFuture<UserSessionValidatorResponse> sessResponse = userSessionClient.validateSession(UUID.fromString(sessionId));
-            log.info("Doing some expensive computation..");
-            UserSessionValidatorResponse userSessionValidatorResponse = null;
-            try {
-                userSessionValidatorResponse = sessResponse.get();
-                log.info("Response received for session validation");
-            } catch (Exception e) {
-                throw new RuntimeException("Error while validating the session", e);
+            Map<String, Object> queryMap = new HashMap<>();
+            queryMap.put("sessionId", sessionId);
+            Map<String, String> headerMap = new HashMap<>();
+            String header = httpServletRequest.getHeader("X-Sleep");
+            if (StringUtils.hasText(header)) {
+                headerMap.put("X-Sleep", header);
             }
-            if (!userSessionValidatorResponse.isValid()) {
-                httpServletResponse.sendError(HttpStatus.FORBIDDEN.value());
-            } else {
-                chain.doFilter(request, response);
+            // The try catch is needed because the exceptions thrown in filters are not handled by the @ExceptionHandlers
+            try {
+                UserSessionValidatorResponse userSessionValidatorResponse = userSessionClient.validateSession(queryMap, headerMap);
+                if (!userSessionValidatorResponse.isValid()) {
+                    httpServletResponse.sendError(HttpStatus.FORBIDDEN.value());
+                } else {
+                    chain.doFilter(request, response);
+                }
+            } catch (Exception e) {
+                log.error("Error while executing session validator filter", e);
+                httpServletResponse.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
             }
         }
     }

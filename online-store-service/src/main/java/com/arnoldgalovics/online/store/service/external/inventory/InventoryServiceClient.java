@@ -1,21 +1,24 @@
 package com.arnoldgalovics.online.store.service.external.inventory;
 
-import com.arnoldgalovics.online.store.service.external.base.BaseClient;
-import com.arnoldgalovics.online.store.service.external.expander.OffsetDateTimeToMillisExpander;
-import feign.Headers;
-import feign.Param;
-import feign.RequestLine;
+import com.arnoldgalovics.online.store.service.external.error.HandleFeignException;
+import com.arnoldgalovics.online.store.service.external.error.InventoryServiceExceptionHandler;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public interface InventoryServiceClient extends BaseClient {
-    @RequestLine("POST /inventory/products/{productId}/decrement?decrementBy={decrementBy}&boughtAt={boughtAt}")
-    void decrementStockForProduct(@Param("productId") UUID productId,
-                                  @Param("decrementBy") int decrementBy,
-                                  @Param(value = "boughtAt", expander = OffsetDateTimeToMillisExpander.class) OffsetDateTime boughtAt);
+@FeignClient(name = "inventory-service", url = "http://localhost:8082")
+public interface InventoryServiceClient {
+    @PostMapping("/inventory/products/{productId}/decrement")
+    void decrementStockForProduct(@PathVariable("productId") UUID productId,
+                                  @RequestParam("decrementBy") int decrementBy,
+                                  @RequestParam(value = "boughtAt") OffsetDateTime boughtAt);
 
-    @RequestLine("POST /products")
-    @Headers("Content-Type: application/json")
+    @PostMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
+    @HandleFeignException(InventoryServiceExceptionHandler.class)
     AddProductInventoryServiceResponse addProduct(AddProductInventoryServiceRequest inventoryServiceRequest);
 }

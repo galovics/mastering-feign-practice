@@ -1,21 +1,22 @@
 package com.arnoldgalovics.online.store.service.external.session;
 
 import com.arnoldgalovics.online.store.service.external.base.BaseClient;
-import feign.HeaderMap;
-import feign.QueryMap;
-import feign.RequestLine;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
+@FeignClient(value = "user-session-service")
 public interface UserSessionClient extends BaseClient {
-    @RequestLine("GET /user-sessions/validate/{sessionId}")
-    CompletableFuture<UserSessionValidatorResponse> validateSession(@QueryMap Map<String, Object> queryMap, @HeaderMap Map<String, Object> headerMap);
+    @GetMapping("/user-sessions/validate")
+    UserSessionValidatorResponse validateSession(@RequestParam Map<String, Object> queryMap, @RequestHeader Map<String, String> headerMap);
 
-    default CompletableFuture<UserSessionValidatorResponse> validateSession(UUID sessionId) {
+    default UserSessionValidatorResponse validateSession(UUID sessionId) {
         Map<String, Object> queryMap = new HashMap<>();
         queryMap.put("sessionId", sessionId.toString());
         return validateSession(queryMap, Collections.singletonMap("X-Source", "online-store-service"));

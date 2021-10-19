@@ -1,10 +1,10 @@
-package com.arnoldgalovics.online.store.service;
+package com.arnoldgalovics.service.registry;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OnlineStoreServiceApplicationTests {
+class ServiceRegistryApplicationTests {
 
 	@Test
 	void contextLoads() {

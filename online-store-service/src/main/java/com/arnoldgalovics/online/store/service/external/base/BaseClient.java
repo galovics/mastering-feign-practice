@@ -1,8 +1,8 @@
 package com.arnoldgalovics.online.store.service.external.base;
 
-import feign.RequestLine;
+import org.springframework.web.bind.annotation.GetMapping;
 
 public interface BaseClient {
-    @RequestLine("GET /actuator/health")
+    @GetMapping("/actuator/health")
     HealthResponse health();
 }

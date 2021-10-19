@@ -1,45 +1,65 @@
 package com.arnoldgalovics.online.store.service.external.config;
 
-import com.arnoldgalovics.online.store.service.external.error.InventoryServiceErrorDecoder;
-import com.arnoldgalovics.online.store.service.external.inventory.InventoryServiceClient;
-import com.arnoldgalovics.online.store.service.external.session.UserSessionClient;
-import feign.AsyncFeign;
-import feign.Feign;
+import feign.Capability;
 import feign.Logger;
-import feign.Request;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
 import feign.micrometer.MicrometerCapability;
-import feign.slf4j.Slf4jLogger;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.jmx.JmxConfig;
 import io.micrometer.jmx.JmxMeterRegistry;
+import org.springframework.boot.actuate.health.SimpleStatusAggregator;
+import org.springframework.boot.actuate.health.StatusAggregator;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.client.circuitbreaker.Customizer;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignFormatterRegistrar;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
+
+import java.time.Duration;
+
+import static io.github.resilience4j.circuitbreaker.CircuitBreakerConfig.SlidingWindowType.COUNT_BASED;
 
 @Configuration
-public class FeignConfiguration {
+@EnableFeignClients(basePackages = "com.arnoldgalovics.online.store.service.external")
+public class FeignConfiguration implements FeignFormatterRegistrar {
     @Bean
-    public InventoryServiceClient inventoryServiceClient() {
-
-        return Feign.builder()
-                .encoder(new JacksonEncoder())
-                .decoder(new JacksonDecoder())
-                .requestInterceptor(new SessionIdRequestInterceptor())
-                .errorDecoder(new InventoryServiceErrorDecoder())
-                .options(new Request.Options())
-                .addCapability(new MicrometerCapability(new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM)))
-                .target(InventoryServiceClient.class, "http://localhost:8082");
+    public Capability jmxCapability() {
+        return new MicrometerCapability(new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM));
     }
 
     @Bean
-    public UserSessionClient userSessionClient() {
-        return AsyncFeign.asyncBuilder()
-                .encoder(new JacksonEncoder())
-                .decoder(new JacksonDecoder())
-                .logger(new Slf4jLogger())
-                .requestInterceptor(new SessionIdRequestInterceptor())
-                .logLevel(Logger.Level.FULL)
-                .target(UserSessionClient.class, "http://localhost:8081");
+    public Logger.Level loggerLevel() {
+        return Logger.Level.FULL;
+    }
+
+    @Override
+    public void registerFormatters(FormatterRegistry registry) {
+        registry.addFormatter(new OffsetDateTimeToMillisFormatter());
+    }
+
+    @Bean
+    public Customizer<Resilience4JCircuitBreakerFactory> circuitBreakerFactoryCustomizer() {
+        CircuitBreakerConfig userSessionClientConfig = CircuitBreakerConfig.custom()
+                .slidingWindowType(COUNT_BASED)
+                .slidingWindowSize(5)
+                .failureRateThreshold(20.0f)
+                .waitDurationInOpenState(Duration.ofSeconds(5))
+                .permittedNumberOfCallsInHalfOpenState(2)
+                .slowCallDurationThreshold(Duration.ofSeconds(5))
+                .slowCallRateThreshold(80)
+                .build();
+        TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(10)).cancelRunningFuture(true).build();
+        return resilience4JCircuitBreakerFactory -> {
+            resilience4JCircuitBreakerFactory.configure((builder) ->
+                    builder.circuitBreakerConfig(userSessionClientConfig).timeLimiterConfig(timeLimiterConfig), "UserSessionClient#validateSession(Map,Map)");
+        };
+    }
+
+    @Bean
+    public StatusAggregator statusAggregator() {
+        return new SimpleStatusAggregator();
     }
 }

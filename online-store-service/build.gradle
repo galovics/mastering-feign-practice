@@ -24,17 +24,18 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'io.github.openfeign:feign-core:10.12'
-	implementation 'io.github.openfeign:feign-slf4j:10.12'
-	implementation 'io.github.openfeign:feign-java11:10.12'
-	implementation 'io.github.openfeign:feign-jackson:10.12'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 	implementation 'io.github.openfeign:feign-micrometer:10.12'
 	implementation 'io.micrometer:micrometer-registry-jmx:1.7.4'
-//	implementation 'io.github.openfeign:feign-dropwizard-metrics4:10.12'
-//	implementation 'io.dropwizard.metrics:metrics-jmx:4.2.4'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation "com.github.tomakehurst:wiremock-jre8:2.31.0"
+	testImplementation 'org.testcontainers:testcontainers:1.16.0'
 }
 
 dependencyManagement {

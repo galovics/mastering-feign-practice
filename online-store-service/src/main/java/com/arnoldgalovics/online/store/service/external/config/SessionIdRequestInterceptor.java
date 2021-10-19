@@ -3,9 +3,11 @@ package com.arnoldgalovics.online.store.service.external.config;
 import com.arnoldgalovics.online.store.service.util.RequestHeaderExtractor;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import org.springframework.stereotype.Component;
 
 import static com.arnoldgalovics.online.store.service.util.Constants.X_SESSION_ID_HEADER_NAME;
 
+@Component
 public class SessionIdRequestInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
