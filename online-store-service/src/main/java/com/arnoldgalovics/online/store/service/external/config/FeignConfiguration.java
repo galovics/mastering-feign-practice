@@ -58,8 +58,8 @@ public class FeignConfiguration implements FeignFormatterRegistrar {
         };
     }
 
-    @Bean
-    public StatusAggregator statusAggregator() {
-        return new SimpleStatusAggregator();
-    }
+//    @Bean
+//    public StatusAggregator statusAggregator() {
+//        return new SimpleStatusAggregator();
+//    }
 }

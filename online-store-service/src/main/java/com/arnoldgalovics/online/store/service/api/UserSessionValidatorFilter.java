@@ -38,6 +38,7 @@ public class UserSessionValidatorFilter implements Filter {
                 headerMap.put("X-Sleep", header);
             }
             // The try catch is needed because the exceptions thrown in filters are not handled by the @ExceptionHandlers
+            // and the tests would purely receive the exception
             try {
                 UserSessionValidatorResponse userSessionValidatorResponse = userSessionClient.validateSession(queryMap, headerMap);
                 if (!userSessionValidatorResponse.isValid()) {
