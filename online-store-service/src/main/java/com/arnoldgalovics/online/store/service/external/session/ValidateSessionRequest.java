@@ -1,4 +1,4 @@
-package com.arnoldgalovics.online.store.service.api;
+package com.arnoldgalovics.online.store.service.external.session;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ErrorResponse {
-    private String message;
+public class ValidateSessionRequest {
+    private String sessionId;
 }

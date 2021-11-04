@@ -1,4 +1,4 @@
-package com.arnoldgalovics.online.store.service.api;
+package com.arnoldgalovics.inventory.service.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

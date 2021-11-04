@@ -1,12 +1,10 @@
 package com.arnoldgalovics.online.store.service.external.config;
 
-import com.arnoldgalovics.online.store.service.external.error.InventoryServiceErrorDecoder;
 import com.arnoldgalovics.online.store.service.external.inventory.InventoryServiceClient;
 import com.arnoldgalovics.online.store.service.external.session.UserSessionClient;
 import feign.AsyncFeign;
 import feign.Feign;
 import feign.Logger;
-import feign.Request;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import feign.micrometer.MicrometerCapability;
@@ -20,26 +18,26 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FeignConfiguration {
     @Bean
-    public InventoryServiceClient inventoryServiceClient() {
-
-        return Feign.builder()
+    public UserSessionClient userSessionClient() {
+        return AsyncFeign.asyncBuilder()
+                .logLevel(Logger.Level.FULL)
+                .logger(new Slf4jLogger())
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
-                .requestInterceptor(new SessionIdRequestInterceptor())
-                .errorDecoder(new InventoryServiceErrorDecoder())
-                .options(new Request.Options())
-                .addCapability(new MicrometerCapability(new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM)))
-                .target(InventoryServiceClient.class, "http://localhost:8082");
+                .requestInterceptor(new SourceRequestInterceptor())
+                .target(UserSessionClient.class, "http://localhost:8082");
     }
 
     @Bean
-    public UserSessionClient userSessionClient() {
-        return AsyncFeign.asyncBuilder()
+    public InventoryServiceClient inventoryServiceClient() {
+        return Feign.builder()
+                .addCapability(new MicrometerCapability(new JmxMeterRegistry(JmxConfig.DEFAULT, Clock.SYSTEM)))
+                .logLevel(Logger.Level.FULL)
+                .logger(new Slf4jLogger())
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
-                .logger(new Slf4jLogger())
-                .requestInterceptor(new SessionIdRequestInterceptor())
-                .logLevel(Logger.Level.FULL)
-                .target(UserSessionClient.class, "http://localhost:8081");
+                .errorDecoder(new InventoryServiceErrorDecoder())
+                .requestInterceptor(new SourceRequestInterceptor())
+                .target(InventoryServiceClient.class, "http://localhost:8081");
     }
 }
