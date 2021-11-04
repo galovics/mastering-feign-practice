@@ -5,8 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ErrorResponse {
-    private String message;
+@NoArgsConstructor
+public class HealthResponse {
+    private String name;
+    private String status;
 }

@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserSessionValidatorResponse {
-    private String sessionId;
     private boolean valid;
+    private String sessionId;
 }

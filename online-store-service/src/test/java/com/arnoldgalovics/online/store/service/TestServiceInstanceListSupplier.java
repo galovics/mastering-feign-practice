@@ -9,26 +9,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestServiceInstanceListSupplier implements ServiceInstanceListSupplier {
-    private final String name;
-    private final int[] ports;
+    private String serviceId;
+    private int[] ports;
 
-    public TestServiceInstanceListSupplier(String name, int... ports) {
-        this.name = name;
+    public TestServiceInstanceListSupplier(String serviceId, int... ports) {
+        this.serviceId = serviceId;
         this.ports = ports;
     }
 
     @Override
     public String getServiceId() {
-        return name;
+        return serviceId;
     }
 
     @Override
     public Flux<List<ServiceInstance>> get() {
-        List<ServiceInstance> serviceInstances = new ArrayList<>();
+        List<ServiceInstance> result = new ArrayList<>();
         for (int i = 0; i < ports.length; i++) {
-            serviceInstances.add(new DefaultServiceInstance(name + "-" + i, getServiceId(), "localhost", ports[i], false));
+            result.add(new DefaultServiceInstance(serviceId + i, getServiceId(), "localhost", ports[i], false));
         }
-
-        return Flux.just(serviceInstances);
+        return Flux.just(result);
     }
 }
